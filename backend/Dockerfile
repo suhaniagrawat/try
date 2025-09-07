@@ -1,35 +1,57 @@
-# --- Stage 1: The Builder ---
-# This stage installs all dependencies, including build tools.
-FROM python:3.11-slim as builder
-
-WORKDIR /app
-
-# Install dependencies into the virtual environment
-RUN python -m venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
-
-# Copy only the requirements file first to leverage Docker's cache
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-
-
-# --- Stage 2: The Final Image ---
-# This stage is clean and minimal, only containing what's needed to run.
+# Use Python 3.11 with OpenCV support
 FROM python:3.11-slim
 
+# Install system dependencies for OpenCV and AI libraries
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    libgthread-2.0-0 \
+    libgtk-3-0 \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js for frontend build
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
+
+# Set working directory
 WORKDIR /app
 
-# Copy the installed virtual environment from the builder stage
-COPY --from=builder /opt/venv /opt/venv
+# Copy and install Python dependencies
+COPY backend/requirements.txt ./backend/
+RUN pip install --no-cache-dir -r backend/requirements.txt
 
-# Copy all your application code
-COPY . .
+# Copy frontend package files and install dependencies
+COPY frontend/package*.json ./frontend/
+WORKDIR /app/frontend
+RUN npm install
 
-# Set the PATH to include the venv, so 'uvicorn' can be found
-ENV PATH="/opt/venv/bin:$PATH"
+# Copy frontend source and build
+COPY frontend/ ./
+RUN npm run build
 
-# Expose the port the app runs on
+# Switch back to app root
+WORKDIR /app
+
+# Copy backend source
+COPY backend/ ./backend/
+
+# Copy built frontend to backend's static directory
+RUN mkdir -p backend/static && cp -r frontend/dist/* backend/static/
+
+# Expose port
 EXPOSE 8000
 
-# The command to run when the container starts
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Set environment variables
+ENV PYTHONPATH=/app/backend
+ENV NODE_ENV=production
+ENV HEADLESS=true
+ENV RAILWAY_ENVIRONMENT=production
+
+# Start command (backend only, AI agent separate)
+CMD ["python", "backend/main.py"]
