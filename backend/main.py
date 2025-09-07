@@ -14,24 +14,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+
+
 app = FastAPI()
 
 # IMPORTANT: Replace this with your REAL Vercel frontend URL
 origins = [
-    "https://the-route-cause.vercel.app/", # Your frontend's public URL
-    # You can also add localhost for local testing
-    "http://localhost:3000",
-    "http://localhost:8080",
+    "https://my-traffic-dashboard.vercel.app", # Your frontend's public URL
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"], # Allows all methods (GET, POST, etc.)
+    allow_methods=["*"], # Allows all methods
     allow_headers=["*"], # Allows all headers
 )
 
+# ... your existing WebSocket and API endpoints continue here ...
 # ... your existing WebSocket and API endpoints continue here ..
 
 
