@@ -3,37 +3,17 @@
 
 import asyncio
 import time
+import os
+import uvicorn
 from typing import List, Dict, Any
 from collections import deque
+from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, ValidationError
-from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-# in main.py
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
-
-
-app = FastAPI()
-
-# IMPORTANT: Replace this with your REAL Vercel frontend URL
-origins = [
-    "https://the-route-cause.vercel.app/", # Your frontend's public URL
-]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"], # Allows all methods
-    allow_headers=["*"], # Allows all headers
-)
-
-# ... your existing WebSocket and API endpoints continue here ...
-# ... your existing WebSocket and API endpoints continue here ..
-
 
 # ==============================================================================
 # 1. PYDANTIC MODELS (Copied from models.py for a self-contained file)
@@ -46,7 +26,6 @@ class DecisionPayload(BaseModel):
     pedestrian_count: int
     decision: Dict[str, Any]
     signal_state: Dict[str, Any]
-
 
 # ==============================================================================
 # 2. STATE MANAGEMENT (Copied from state_manager.py for a self-contained file)
@@ -63,7 +42,6 @@ traffic_state = {
     "ai_status": "DISCONNECTED"
 }
 
-
 # ==============================================================================
 # 3. CONNECTION & METRICS LOGIC (Dev B's core logic, optimized)
 # ==============================================================================
@@ -79,14 +57,25 @@ class ConnectionManager:
         print(f"✅ Dashboard client connected. Total clients: {len(self.active_connections)}")
 
     def disconnect(self, websocket: WebSocket):
-        self.active_connections.remove(websocket)
+        if websocket in self.active_connections:
+            self.active_connections.remove(websocket)
         print(f"🔌 Dashboard client disconnected. Total clients: {len(self.active_connections)}")
 
     async def broadcast(self, data: Dict[str, Any]):
         """Sends a JSON payload to all connected dashboard clients concurrently."""
         if self.active_connections:
-            # asyncio.gather is highly efficient for sending to multiple clients at once.
-            await asyncio.gather(*[connection.send_json(data) for connection in self.active_connections])
+            # Handle disconnected clients gracefully
+            disconnected = []
+            for connection in self.active_connections:
+                try:
+                    await connection.send_json(data)
+                except Exception as e:
+                    print(f"Error sending to client: {e}")
+                    disconnected.append(connection)
+            
+            # Remove disconnected clients
+            for conn in disconnected:
+                self.disconnect(conn)
 
 class MetricsProcessor:
     """
@@ -175,17 +164,51 @@ class MetricsProcessor:
             "emergency_mode": emergency_mode
         }
 
-
 # ==============================================================================
 # 4. FASTAPI APPLICATION AND ENDPOINTS
 # ==============================================================================
 
 app = FastAPI(title="High-Speed AI Traffic Backend")
 
+# Production CORS Configuration
+origins = [
+    "https://the-route-cause.vercel.app",  # Your Vercel frontend (without trailing slash)
+    "https://*.railway.app",  # Railway domains
+    "http://localhost:3000",  # Local development
+    "http://localhost:5173",  # Vite dev server
+    "*"  # Allow all for development - restrict in production
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Serve static files (React build) if they exist
+static_dir = Path(__file__).parent / "static"
+if static_dir.exists() and static_dir.is_dir():
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+    print(f"✅ Serving static files from: {static_dir}")
+else:
+    print(f"⚠️ Static directory not found: {static_dir}")
+
 # --- Global instances for our logic handlers ---
 dashboard_manager = ConnectionManager()
 metrics_processor = MetricsProcessor()
-last_significant_reason = "" # Used to track when a core decision changes
+last_significant_reason = ""  # Used to track when a core decision changes
+
+# Health check endpoint for Railway
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "service": "AI Traffic Control System",
+        "ai_status": traffic_state.get("ai_status", "DISCONNECTED"),
+        "timestamp": time.time()
+    }
 
 @app.websocket("/ws/ai")
 async def websocket_ai_endpoint(websocket: WebSocket):
@@ -218,7 +241,7 @@ async def websocket_ai_endpoint(websocket: WebSocket):
                 new_reason = traffic_state.get("last_decision_reason", "")
                 if new_reason != last_significant_reason and "Observing" not in new_reason:
                     metrics_processor.update_long_term_metrics(new_reason)
-                    last_significant_reason = new_reason # Update the last reason
+                    last_significant_reason = new_reason  # Update the last reason
 
                 # 4. Get the full payload with freshly calculated metrics (also very fast)
                 frontend_payload = metrics_processor.get_full_payload(traffic_state)
@@ -235,7 +258,6 @@ async def websocket_ai_endpoint(websocket: WebSocket):
         traffic_state["ai_status"] = "DISCONNECTED"
         print("🔴 AI Agent Disconnected")
 
-
 @app.websocket("/ws/dashboard")
 async def websocket_dashboard_endpoint(websocket: WebSocket):
     """Connects a frontend dashboard client and sends initial state."""
@@ -250,3 +272,34 @@ async def websocket_dashboard_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         dashboard_manager.disconnect(websocket)
 
+# Serve React app for all other routes
+@app.get("/{full_path:path}")
+async def serve_react_app(full_path: str):
+    """Serve React app for all non-API routes"""
+    # Don't interfere with WebSocket or API routes
+    if full_path.startswith(("ws/", "health", "docs", "redoc", "openapi.json")):
+        return {"error": "Route not found"}
+    
+    # Serve React index.html
+    index_file = static_dir / "index.html"
+    if index_file.exists():
+        return FileResponse(index_file)
+    else:
+        return {"message": "React app not built. Frontend served separately."}
+
+# Production server startup
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    host = "0.0.0.0"  # Important: bind to all interfaces for Railway
+    
+    print(f"🚀 Starting AI Traffic Control System on {host}:{port}")
+    print(f"📁 Static directory exists: {static_dir.exists()}")
+    
+    uvicorn.run(
+        "main:app",
+        host=host,
+        port=port,
+        reload=False,  # Disable reload in production
+        log_level="info",
+        access_log=True
+    )
