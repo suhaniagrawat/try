@@ -10,23 +10,31 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, ValidationError
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+# in main.py
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
 # IMPORTANT: Replace this with your REAL Vercel frontend URL
 origins = [
-    "https://the-route-cause-git-main-bindpratapsingh-gmailcoms-projects.vercel.app?_vercel_share=vZNr57pig25Afb3S7gFuNdBJNn0u13N9",
+    "https://the-route-cause.vercel.app/", # Your frontend's public URL
+    # You can also add localhost for local testing
+    "http://localhost:3000",
+    "http://localhost:8080",
 ]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"], # Allows all methods (GET, POST, etc.)
+    allow_headers=["*"], # Allows all headers
 )
 
-# ... your existing API routes continue here ...
+# ... your existing WebSocket and API endpoints continue here ..
+
+
 # ==============================================================================
 # 1. PYDANTIC MODELS (Copied from models.py for a self-contained file)
 # ==============================================================================
