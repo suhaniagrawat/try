@@ -39,8 +39,8 @@ interface TrafficDataContextType {
 const TrafficDataContext = createContext<TrafficDataContextType | undefined>(undefined);
 
 // Define the WebSocket URL
-const WEBSOCKET_URL = "ws://127.0.0.1:8000/ws/dashboard";
-
+//const WEBSOCKET_URL = "ws://127.0.0.1:8000/ws/dashboard";
+const WEBSOCKET_URL = process.env.VITE_WEBSOCKET_URL || "ws://localhost:8000/ws/dashboard";
 // --- Create the Provider Component ---
 // This component will wrap your entire application. It handles the actual
 // connection and provides the data to all children.
