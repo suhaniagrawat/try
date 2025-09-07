@@ -1,68 +1,89 @@
-The Route Cause - AI-Powered Traffic Management System
 
-Our project is a dynamic, multi-layered AI traffic management system that moves beyond fixed timers to create a responsive, safe, and efficient traffic flow for both vehicles and pedestrians in real-time.
+# The Route Cause - AI-Powered Traffic Management System  
+**Submission for Smart India Hackathon 2025**  
 
-The Problem We Solve
-Traditional traffic lights use static timers, leading to unnecessary congestion, long wait times, and an inability to respond to real-world events like emergency vehicles or sudden traffic jams. Our system solves this by bringing intelligent, adaptive control to urban intersections.
+**Team ID:** 6 | **Problem ID:** 25050 | **Theme:** Transportation & Logistics  
 
-Our Multi-Layered AI Solution
-Our system is built on a three-pillar architecture:
+---
 
-Real-Time Perception (The Eyes): A YOLOv8 computer vision model provides real-time situational awareness, detecting and counting every vehicle and pedestrian.
+## The Problem We Solve  
+Traditional traffic lights use static timers, leading to unnecessary congestion, long wait times, and an inability to respond to real-world events like emergency vehicles or sudden traffic jams.  
+Our system solves this by bringing intelligent, adaptive control to urban intersections.  
 
-Intelligent Decisions (The Brain): A trained Q-Learning Reinforcement Learning agent analyzes the live data to make strategic decisions on signal timing to minimize congestion.
+---
 
-Optimization & Safety (The Supervisor): A rule-based Optimization Engine supervises the AI's decisions, enforcing critical safety and fairness rules like emergency overrides and starvation prevention.
+## Our Multi-Layered AI Solution  
 
-This data is then streamed via a FastAPI backend to a live React dashboard for visualization.
+### Real-Time Perception (The Eyes)  
+A YOLOv8 computer vision model provides real-time situational awareness, detecting and counting every vehicle and pedestrian.  
 
-Key Features & Innovations
-Adaptive AI Control: Dynamically allocates green lights based on live traffic density, reducing wait times.
+### Intelligent Decisions (The Brain)  
+A trained Q-Learning Reinforcement Learning agent analyzes the live data to make strategic decisions on signal timing to minimize congestion.  
 
-Emergency Vehicle Preemption: Executes a professional-grade clearing sequence (yellow -> all-red -> dedicated green) for emergency vehicles.
+### Optimization & Safety (The Supervisor)  
+A rule-based Optimization Engine supervises the AI's decisions, enforcing critical safety and fairness rules like emergency overrides and starvation prevention.  
 
-Dynamic Queue Management: Intelligently overrides the cycle to service excessively long queues and prevent gridlock.
+This data is then streamed via a FastAPI backend to a live React dashboard for visualization.  
 
-Fairness Guarantee: A "starvation" timer prevents any vehicle from waiting indefinitely.
+---
 
-Real-Time Data & Transparency: All perceptions and decisions are streamed via WebSockets to a live dashboard for complete system transparency.
+## Website & Dashboard Screenshots  
 
-Tech Stack
-AI & Computer Vision: Python, OpenCV, PyTorch, YOLOv8, Q-Learning
+### Live Traffic Dashboard  
+![Traffic Dashboard](images/screenshot-traffic-dashboard.png)  
 
-Backend & Data Pipeline: Python, FastAPI, WebSockets
+### Performance Metrics  
+![Performance Metrics](images/screenshot-performance-metrics.png)  
 
-Frontend & Visualization: React.js, TypeScript, Vite, TailwindCSS, Recharts
+### Emergency Override Monitoring  
+![Emergency Mode](images/screenshot-emergency-mode.png)  
 
-Deployment: Vercel (Frontend), Railway (Backend)
+### Real-Time Detection  
+![System Status](images/screenshot-system-status.png)  
 
-How to Run This Project
-Prerequisites
+---
 
-Python 3.10+
+## Key Features & Innovations  
 
-Node.js and npm/yarn
+- **Adaptive AI Control**: Dynamically allocates green lights based on live traffic density.  
+- **Emergency Vehicle Preemption**: Executes a professional-grade clearing sequence (yellow -> all-red -> dedicated green) for emergency vehicles.  
+- **Dynamic Queue Management**: Intelligently overrides the cycle to service excessively long queues and prevent gridlock.  
+- **Fairness Guarantee**: A "starvation" timer prevents any vehicle from waiting indefinitely.  
+- **Real-Time Data & Transparency**: All perceptions and decisions are streamed via WebSockets to a live dashboard for complete system transparency.  
 
-A video file (my_video.mp4) of traffic for the AI to process
+---
 
-Backend & AI Agent Setup
+## Tech Stack  
 
-Navigate to the backend directory.
+- **AI & Computer Vision**: Python, OpenCV, PyTorch, YOLOv8, Q-Learning  
+- **Backend & Data Pipeline**: Python, FastAPI, WebSockets  
+- **Frontend & Visualization**: React.js, TypeScript, Vite, TailwindCSS, Recharts  
+- **Deployment**: Vercel (Frontend), Railway (Backend)  
 
-Create a virtual environment and install dependencies:
+---
 
+## How to Run This Project  
+
+### Prerequisites  
+- Python 3.10+  
+- Node.js and npm/yarn  
+- A video file (`my_video.mp4`) of traffic for the AI to process  
+
+### Backend & AI Agent Setup  
+```bash
+cd backend
 python -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+uvicorn main:app --reload
+python run_live_agent.py
+```
 
-In one terminal, run the backend server: uvicorn main:app --reload
+### Frontend Setup  
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-In a second terminal, run the live agent script: python run_live_agent.py
-
-Frontend Setup
-
-Navigate to the frontend directory.
-
-Install dependencies: npm install
-
-Run the development server: npm run dev
+---
