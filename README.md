@@ -2,7 +2,6 @@
 # The Route Cause - AI-Powered Traffic Management System  
 **Submission for Smart India Hackathon 2025**  
 
-**Team ID:** 6 | **Problem ID:** 25050 | **Theme:** Transportation & Logistics  
 
 ---
 
@@ -24,22 +23,6 @@ A trained Q-Learning Reinforcement Learning agent analyzes the live data to make
 A rule-based Optimization Engine supervises the AI's decisions, enforcing critical safety and fairness rules like emergency overrides and starvation prevention.  
 
 This data is then streamed via a FastAPI backend to a live React dashboard for visualization.  
-
----
-
-## Website & Dashboard Screenshots  
-
-### Live Traffic Dashboard  
-![Traffic Dashboard](images/screenshot-traffic-dashboard.png)  
-
-### Performance Metrics  
-![Performance Metrics](images/screenshot-performance-metrics.png)  
-
-### Emergency Override Monitoring  
-![Emergency Mode](images/screenshot-emergency-mode.png)  
-
-### Real-Time Detection  
-![System Status](images/screenshot-system-status.png)  
 
 ---
 
