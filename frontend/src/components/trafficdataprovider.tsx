@@ -39,7 +39,7 @@ interface TrafficDataContextType {
 const TrafficDataContext = createContext<TrafficDataContextType | undefined>(undefined);
 
 // Define the WebSocket URL
-const WEBSOCKET_URL = "ws://127.0.0.1:8000/ws/dashboard";
+const WEBSOCKET_URL = "theroutecause-production.up.railway.app";
 
 // --- Create the Provider Component ---
 // This component will wrap your entire application. It handles the actual
