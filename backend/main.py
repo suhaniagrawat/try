@@ -20,7 +20,7 @@ app = FastAPI()
 
 # IMPORTANT: Replace this with your REAL Vercel frontend URL
 origins = [
-    "https://my-traffic-dashboard.vercel.app", # Your frontend's public URL
+    "https://the-route-cause.vercel.app/", # Your frontend's public URL
 ]
 
 app.add_middleware(
