@@ -1,0 +1,5 @@
+# For Vite or Create React App
+VITE_WEBSOCKET_URL=ws://127.0.0.1:8000/ws/dashboard
+
+# If you use Next.js, the variable should be prefixed with NEXT_PUBLIC_
+# NEXT_PUBLIC_WEBSOCKET_URL=ws://127.0.0.1:8000/ws/dashboard
