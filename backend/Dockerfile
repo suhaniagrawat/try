@@ -12,3 +12,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Expose the port the app runs on (Railway will map this)
 EXPOSE 8000
+
+# <<< ADD THIS LINE: The command to run when the container starts >>>
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
